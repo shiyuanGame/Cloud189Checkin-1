@@ -17,10 +17,10 @@ jobs:
         run: sleep $((RANDOM % 301))
 
       - name: 🔌 Check out code
-        uses: actions/checkout@main
+        uses: actions/checkout@v4
 
       - name: 🔨 Setup Node.js environment
-        uses: actions/setup-node@main
+        uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: npm
@@ -39,7 +39,7 @@ jobs:
           restore-keys: cloud189-token-
 
       - name: 🔧 Init secrets
-        uses: shine1594/secrets-to-env-action@master
+        uses: shine1594/secrets-to-env-action@v1.2
         with:
           secrets: ${{ toJSON(secrets) }}
           secrets_env: production
@@ -50,7 +50,7 @@ jobs:
         run: npm install
 
       - name: 🚀 Run
-        uses: nick-fields/retry@master
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 30
           max_attempts: 3
@@ -69,20 +69,10 @@ jobs:
           path: .token
           key: cloud189-token-${{ env.TOKEN_HASH }}
 
-      - name: 🚗 Keep Running
-        if: github.event_name == 'schedule'
-        run: |
-          git config --local user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
-          git config --local user.name "${{ github.actor }}"
-          git remote set-url origin https://${{ github.actor }}:${{ github.token }}@github.com/${{ github.repository }}
-          git pull --rebase --autostash
-          git commit --allow-empty -m "Keep Running..."
-          git push
-
       - name: 🎉 Delete old workflow run
-        uses: Mattraks/delete-workflow-runs@main
+        uses: Mattraks/delete-workflow-runs@v2
         with:
           token: ${{ github.token }}
           repository: ${{ github.repository }}
-          retain_days: 0
-          keep_minimum_runs: 50
+          retain_days: 30
+          keep_minimum_runs: 10
